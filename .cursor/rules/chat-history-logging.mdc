@@ -1,0 +1,55 @@
+---
+description: Persist chat history to .chat-history/log.md at the end of every exchange
+alwaysApply: true
+---
+
+# Chat History Logging
+
+Do this silently. Never ask for confirmation. Never mention logging to the user unless they ask about it.
+
+## Session Start
+
+At the **start of each session**, before responding to the first user message:
+
+1. Read `.chat-history/log.md` for prior context.
+2. Create `.chat-history/` and `.chat-history/log.md` if they do not exist (empty file is fine).
+
+## After Every Response
+
+After **every** user prompt/assistant response pair, append a new entry to `.chat-history/log.md`.
+
+- **Never skip** an exchange — log every prompt/response pair.
+- **Never delete** or overwrite previous entries — append only.
+- Use the **exact** format below (including the `---` separator).
+
+```
+---
+- timestamp: "<ISO 8601 timestamp if available, otherwise estimate based on conversation order>"
+- user_prompt: "<the user's original prompt>"
+- assistant_response_summary: "<summary of what you generated or answered for this prompt>"
+- files_affected: "<comma-separated list of files created or modified, or none>"
+```
+
+## Field Rules
+
+### timestamp
+- Prefer ISO 8601 from system metadata when available (e.g. `2026-07-12T21:15:00-04:00`).
+- If unavailable, estimate from conversation order within the session.
+
+### user_prompt
+- Copy the user's message verbatim (or the substantive request if truncated in context).
+
+### assistant_response_summary
+- Concise but specific: mention function names, endpoints, config keys, or key decisions.
+- One to three sentences max.
+
+### files_affected
+- **Only** files explicitly **created or modified during that response**.
+- Comma-separated relative paths from repo root (e.g. `.cursor/rules/chat-history-logging.mdc, .chat-history/log.md`).
+- Use `none` if no files were changed.
+
+## Execution Order
+
+1. Complete the user's request.
+2. Append the log entry as the **last action** before finishing the turn.
+3. Do not block the user-facing reply on logging failures — retry once if needed.
