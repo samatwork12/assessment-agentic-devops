@@ -9,12 +9,19 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 defaults:
   run:
     working-directory: codebase/rdicidr-0.1.0
 
 env:
   REACT_APP_API_URL: api.rdicidr.com
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 210965992075.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY: rdicidr
 
 jobs:
   install:
@@ -82,3 +89,32 @@ jobs:
       - if: steps.npm-cache.outputs.cache-hit != 'true'
         run: npm ci
       - run: npm run build
+
+  publish:
+    name: Push image to ECR
+    needs: [lint, test, build]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::210965992075:role/fsl-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        working-directory: codebase/rdicidr-0.1.0
+        env:
+          IMAGE_URI: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+        run: |
+          docker buildx build --platform linux/amd64 \
+            --build-arg REACT_APP_API_URL=${{ env.REACT_APP_API_URL }} \
+            -t "$IMAGE_URI" \
+            -t "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" \
+            --push .
