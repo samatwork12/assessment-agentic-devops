@@ -44,3 +44,13 @@
 - user_prompt: "rdicidr ImagePullBackOff - believe not able to pull from ECR, do docker login and pull"
 - assistant_response_summary: "Root cause was platform mismatch: ECR images were arm64 (Mac build) but EKS nodes are amd64. Not an auth issue. Rebuilt/pushed linux/amd64 to ECR, verified docker pull amd64/linux, updated deployment to feature-fix-ci tag. 2/2 pods Running. Updated ci.yaml and deploy.yaml to use docker buildx --platform linux/amd64."
 - files_affected: ".github/workflows/ci.yaml, .github/workflows/deploy.yaml"
+---
+- timestamp: "2026-07-12T22:46:00-04:00"
+- user_prompt: "give me the PR content to add."
+- assistant_response_summary: "Drafted PR title and body covering CI fixes (Node 15, ECR publish with linux/amd64 OIDC), deploy workflow for EKS, k8s manifest fixes (port 80, selector, ingress), source bug fixes, and Dockerfile/DIAGNOSIS.md updates."
+- files_affected: "none"
+---
+- timestamp: "2026-07-12T22:47:00-04:00"
+- user_prompt: "give me a marked down content so that I can copy and past it"
+- assistant_response_summary: "Provided copy-paste ready markdown PR title and body for feature-fix-ci branch."
+- files_affected: "none"
