@@ -1,0 +1,82 @@
+name: Deploy to EKS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 210965992075.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPOSITORY: rdicidr
+  EKS_CLUSTER_NAME: fsl-challenge
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::210965992075:role/fsl-github-deploy
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        working-directory: codebase/rdicidr-0.1.0
+        env:
+          IMAGE_URI: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+        run: |
+          docker buildx build --platform linux/amd64 \
+            --build-arg REACT_APP_API_URL=api.rdicidr.com \
+            -t "$IMAGE_URI" \
+            -t "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" \
+            --push .
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --name "${{ env.EKS_CLUSTER_NAME }}" \
+            --region "${{ env.AWS_REGION }}"
+
+      - name: Ensure ingress-nginx controller
+        run: |
+          if ! kubectl get namespace ingress-nginx >/dev/null 2>&1; then
+            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.1/deploy/static/provider/cloud/deploy.yaml
+            kubectl rollout status deployment/ingress-nginx-controller -n ingress-nginx --timeout=300s
+          fi
+
+      - name: Deploy manifests
+        env:
+          ECR_REGISTRY: ${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          envsubst '${ECR_REGISTRY} ${ECR_REPOSITORY} ${IMAGE_TAG}' < k8s/deployment.yaml | kubectl apply -f -
+          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/ingress.yaml
+
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/rdicidr --timeout=180s
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -l app=rdicidr
+          kubectl get svc rdicidr-service
+          kubectl get ingress rdicidr-ingress
+          kubectl get endpoints rdicidr-service

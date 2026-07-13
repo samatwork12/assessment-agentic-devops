@@ -18,20 +18,23 @@ const SubnetNumbersInput = (props) => {
         value={props.value}
         onChange={(e) => {
           let change = false;
-          if (e.target.value < 0 || e.target.value > props.maxNumberOfSubnets) {
+          const { value } = e.target;
+          if (value === "") {
             change = true;
-            setIsValid(false);
-            setMessage("incorrect number of subnets");
-          } else if (e.target.value === "") {
-            change = true;
-          } else if (isNaN(e.target.value)) {
+          } else if (isNaN(value)) {
             change = false;
-            //stay the same
           } else {
-            change = true;
-            setIsValid(true);
+            const num = Number(value);
+            if (num < 0 || num > props.maxNumberOfSubnets) {
+              change = true;
+              setIsValid(false);
+              setMessage("incorrect number of subnets");
+            } else {
+              change = true;
+              setIsValid(true);
+            }
           }
-          props.onChange(e.target.value, change);
+          props.onChange(value, change);
         }}
       />
       <div className="error-message">{message}</div>

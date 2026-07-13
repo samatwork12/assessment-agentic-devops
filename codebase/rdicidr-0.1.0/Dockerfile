@@ -1,6 +1,8 @@
-FROM node:15-alpine as builder
+FROM node:15 AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
+ARG REACT_APP_API_URL=api.rdicidr.com
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY . .
 RUN npm run build

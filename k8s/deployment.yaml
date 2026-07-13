@@ -16,27 +16,27 @@ spec:
     spec:
       containers:
         - name: rdicidr
-          image: rdicidr:latest
-          imagePullPolicy: IfNotPresent  # FIXME: pods sometimes use stale image — should this be Always?
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+          imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            - containerPort: 80
           resources:
             requests:
-              memory: "4Gi"
-              cpu: "4000m"
+              memory: "64Mi"
+              cpu: "100m"
             limits:
-              memory: "8Gi"
-              cpu: "8000m"
+              memory: "128Mi"
+              cpu: "200m"
           livenessProbe:
             httpGet:
               path: /health
-              port: 3000
-            initialDelaySeconds: 1
-            periodSeconds: 3
-            failureThreshold: 1
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
-              port: 3000
-            initialDelaySeconds: 5
+              port: 80
+            initialDelaySeconds: 3
             periodSeconds: 5

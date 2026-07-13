@@ -15,20 +15,23 @@ const Netmask = (props) => {
         value={props.value}
         onChange={(e) => {
           let change = false;
-          if (e.target.value < 0 || e.target.value > 32) {
-            change = true;
-            setIsValid(false);
-            props.setValid(false);
-            setMessage("incorrect value");
-          } else if (e.target.value === "" || isNaN(e.target.value)) {
+          const { value } = e.target;
+          if (value === "" || isNaN(value)) {
             change = false;
-            //stay the same
           } else {
-            change = true;
-            setIsValid(true);
-            props.setValid(true);
+            const num = Number(value);
+            if (num < 0 || num > 32) {
+              change = true;
+              setIsValid(false);
+              props.setValid(false);
+              setMessage("incorrect value");
+            } else {
+              change = true;
+              setIsValid(true);
+              props.setValid(true);
+            }
           }
-          props.changeFunction(e.target.value, change);
+          props.changeFunction(value, change);
         }}
       />
       <div className="error-message">{message}</div>
