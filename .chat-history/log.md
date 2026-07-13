@@ -54,3 +54,8 @@
 - user_prompt: "give me a marked down content so that I can copy and past it"
 - assistant_response_summary: "Provided copy-paste ready markdown PR title and body for feature-fix-ci branch."
 - files_affected: "none"
+---
+- timestamp: "2026-07-12T22:58:00-04:00"
+- user_prompt: "The application must be created as a StatefulSet with at least 3 replicas. Both Service and StatefulSet in production namespace. Service on port 8080. Pods Running with probes passing."
+- assistant_response_summary: "Replaced Deployment with k8s/statefulset.yaml (3 replicas, probes on /health:80), k8s/namespace.yaml (production), service port 8080→80, ingress updated. Updated deploy.yaml. Applied to EKS: 3/3 pods Running, endpoints on 8080 verified."
+- files_affected: "k8s/namespace.yaml, k8s/statefulset.yaml, k8s/service.yaml, k8s/ingress.yaml, k8s/deployment.yaml, .github/workflows/deploy.yaml"
