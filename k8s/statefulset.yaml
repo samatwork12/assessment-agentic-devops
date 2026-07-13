@@ -1,11 +1,13 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: rdicidr
+  namespace: production
   labels:
     app: rdicidr
 spec:
-  replicas: 2
+  serviceName: rdicidr-service
+  replicas: 3
   selector:
     matchLabels:
       app: rdicidr
@@ -19,7 +21,8 @@ spec:
           image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
-            - containerPort: 80
+            - name: http
+              containerPort: 80
           resources:
             requests:
               memory: "64Mi"
@@ -30,13 +33,16 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 3
             failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
-              port: 80
+              port: http
             initialDelaySeconds: 3
             periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3

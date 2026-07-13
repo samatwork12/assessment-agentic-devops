@@ -67,16 +67,17 @@ jobs:
           ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          envsubst '${ECR_REGISTRY} ${ECR_REPOSITORY} ${IMAGE_TAG}' < k8s/deployment.yaml | kubectl apply -f -
+          kubectl apply -f k8s/namespace.yaml
+          envsubst '${ECR_REGISTRY} ${ECR_REPOSITORY} ${IMAGE_TAG}' < k8s/statefulset.yaml | kubectl apply -f -
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/ingress.yaml
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/rdicidr --timeout=180s
+        run: kubectl rollout status statefulset/rdicidr -n production --timeout=180s
 
       - name: Verify deployment
         run: |
-          kubectl get pods -l app=rdicidr
-          kubectl get svc rdicidr-service
-          kubectl get ingress rdicidr-ingress
-          kubectl get endpoints rdicidr-service
+          kubectl get pods -n production -l app=rdicidr
+          kubectl get svc -n production rdicidr-service
+          kubectl get ingress -n production rdicidr-ingress
+          kubectl get endpoints -n production rdicidr-service
