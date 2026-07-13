@@ -1,0 +1,16 @@
+
+---
+- timestamp: "2026-07-12T21:58:00-04:00"
+- user_prompt: "Create a configuration file for this project that permanently instructs you to: At the start of each session, read .chat-history/log.md for previous context. After each response, automatically append to that file using this exact format: (log entry format). Create the file/folder if they don't exist. Never delete previous entries. Do all of this silently — never ask for confirmation. Rules: Be precise about Files Affected, only include files explicitly created or modified during this response. Never skip an exchange, every prompt/response pair must be logged. Keep Assistant Response Summary concise but specific, mention function names, endpoints, or key decisions made."
+- assistant_response_summary: "Created `.cursor/rules/chat-history-logging.mdc` with `alwaysApply: true` to persist session-start log reading and post-response append-only logging. Initialized empty `.chat-history/log.md` for the log store."
+- files_affected: ".cursor/rules/chat-history-logging.mdc, .chat-history/log.md"
+---
+- timestamp: "2026-07-12T22:05:00-04:00"
+- user_prompt: "As a primary devops engineer investigate only do not modify any files yet and see what is wrong with the @codebase/rdicidr-0.1.0/.github/workflows/ci.yaml the ci.yaml file at each and every step find the defect and the files that will be affected in the src code and rank the severity. I want all the investigation in a DIAGNOSIS.md file and then I will review them and then make changes to the ci.yaml and files_affected"
+- assistant_response_summary: "Investigated ci.yaml step-by-step via static analysis and Docker (node:14/15). Wrote DIAGNOSIS.md with 19 ranked findings: workflow not at repo root (never runs), Node 14 vs engines/lockfile, build cache key mismatch, missing eslint-plugin-prettier, App.test.js REACT_APP_API_URL failure, plus SRC-01–SRC-05 source bugs in ipv4.js/Octet/Netmask."
+- files_affected: "DIAGNOSIS.md"
+---
+- timestamp: "2026-07-12T22:10:00-04:00"
+- user_prompt: "alrighty looks good, let's implement the changes by creating a branch with the name feature-fix-ci."
+- assistant_response_summary: "Created branch feature-fix-ci. Moved CI to `.github/workflows/ci.yaml` with working-directory, Node 15 (.nvmrc), v4 actions, fixed cache keys + npm ci fallback, REACT_APP_API_URL env. Updated package.json devDeps (eslint-plugin-prettier, prettier@2.8.8), lockfile, .env.test, and fixed ipv4.js/Octet/Netmask/SubnetNumbersInput. Verified lint/test/build pass on Node 15."
+- files_affected: ".github/workflows/ci.yaml, codebase/rdicidr-0.1.0/.github/workflows/ci.yaml, codebase/rdicidr-0.1.0/package.json, codebase/rdicidr-0.1.0/package-lock.json, codebase/rdicidr-0.1.0/.env.test, codebase/rdicidr-0.1.0/src/lib/ipv4.js, codebase/rdicidr-0.1.0/src/Octet.js, codebase/rdicidr-0.1.0/src/Netmask.js, codebase/rdicidr-0.1.0/src/SubnetNumbersInput.js"

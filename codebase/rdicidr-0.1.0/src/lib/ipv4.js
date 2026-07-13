@@ -153,7 +153,7 @@ class IPv4 {
   }
 
   breakIntoSubnets(number) {
-    if (this.numberOfPossibleSubnets < number || number <= 0) {
+    if (this.numberOfPossibleSubnets() < number || number <= 0) {
       return [`Can't break into ${number} subnets`];
     }
     let subnets = [];

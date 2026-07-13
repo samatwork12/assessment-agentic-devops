@@ -1,0 +1,84 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature-*'
+  pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    working-directory: codebase/rdicidr-0.1.0
+
+env:
+  REACT_APP_API_URL: api.rdicidr.com
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: codebase/rdicidr-0.1.0/.nvmrc
+      - run: npm ci
+      - uses: actions/cache/save@v4
+        with:
+          path: codebase/rdicidr-0.1.0/node_modules
+          key: node-modules-${{ hashFiles('codebase/rdicidr-0.1.0/package-lock.json') }}
+
+  lint:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: codebase/rdicidr-0.1.0/.nvmrc
+      - uses: actions/cache/restore@v4
+        id: npm-cache
+        with:
+          path: codebase/rdicidr-0.1.0/node_modules
+          key: node-modules-${{ hashFiles('codebase/rdicidr-0.1.0/package-lock.json') }}
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run lint
+
+  test:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: codebase/rdicidr-0.1.0/.nvmrc
+      - uses: actions/cache/restore@v4
+        id: npm-cache
+        with:
+          path: codebase/rdicidr-0.1.0/node_modules
+          key: node-modules-${{ hashFiles('codebase/rdicidr-0.1.0/package-lock.json') }}
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm test -- --watchAll=false
+        env:
+          CI: true
+
+  build:
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: codebase/rdicidr-0.1.0/.nvmrc
+      - uses: actions/cache/restore@v4
+        id: npm-cache
+        with:
+          path: codebase/rdicidr-0.1.0/node_modules
+          key: node-modules-${{ hashFiles('codebase/rdicidr-0.1.0/package-lock.json') }}
+      - if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - run: npm run build
